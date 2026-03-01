@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, Alert } from 'react-native';
-import { Theme } from '../../src/theme';
-import { useRouter } from 'expo-router';
-import { FadeInView } from '../../src/animations/FadeInView';
-import { SeekerButton } from '../../src/components/SeekerButton';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
-import { useIdentityStore } from '../../src/store/identityStore';
-import { generateVerificationMessage, verifyWalletSignature } from '../../src/security/walletVerification';
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
+import { FadeInView } from "../../src/animations/FadeInView";
+import { SeekerButton } from "../../src/components/SeekerButton";
+import {
+    generateVerificationMessage,
+    verifyWalletSignature,
+} from "../../src/security/walletVerification";
+import { useIdentityStore } from "../../src/store/identityStore";
+import { Theme } from "../../src/theme";
 
 export default function WalletConnectScreen() {
   const router = useRouter();
@@ -28,24 +31,31 @@ export default function WalletConnectScreen() {
     try {
       setIsVerifying(true);
       const message = generateVerificationMessage(publicKey.toBase58());
-      const messageBytes = Buffer.from(message, 'utf8');
+      const messageBytes = Buffer.from(message, "utf8");
       const signature = await signMessage(messageBytes);
-      
-      const isValid = verifyWalletSignature(message, signature, publicKey.toBase58());
-      
+
+      const isValid = verifyWalletSignature(
+        message,
+        signature,
+        publicKey.toBase58(),
+      );
+
       if (isValid) {
         await login(publicKey.toBase58());
-        router.push('/(onboarding)/biometric');
+        router.push("/(onboarding)/biometric");
       } else {
-        Alert.alert('Verification Failed', 'Invalid signature. Please try again.');
+        Alert.alert(
+          "Verification Failed",
+          "Invalid signature. Please try again.",
+        );
         await disconnect();
       }
     } catch (error: any) {
-      console.error('Verification error:', error);
-      if (error.name === 'WalletSignMessageError') {
-        Alert.alert('Rejected', 'Signature request was rejected.');
+      console.error("Verification error:", error);
+      if (error.name === "WalletSignMessageError") {
+        Alert.alert("Rejected", "Signature request was rejected.");
       } else {
-        Alert.alert('Error', 'Failed to verify wallet ownership.');
+        Alert.alert("Error", "Failed to verify wallet ownership.");
       }
       await disconnect();
     } finally {
@@ -74,14 +84,21 @@ export default function WalletConnectScreen() {
             <View style={styles.mockCard}>
               {isVerifying || (connected && !publicKey) ? (
                 <View style={styles.loadingState}>
-                  <ActivityIndicator color={Theme.colors.primary} size="large" />
+                  <ActivityIndicator
+                    color={Theme.colors.primary}
+                    size="large"
+                  />
                   <Text style={styles.loadingText}>Verifying Ownership...</Text>
                 </View>
               ) : connected && publicKey ? (
                 <View style={styles.readyState}>
-                  <View style={[styles.walletIcon, { backgroundColor: '#4ade80' }]} />
+                  <View
+                    style={[styles.walletIcon, { backgroundColor: "#4ade80" }]}
+                  />
                   <Text style={styles.cardTitle}>Wallet Connected</Text>
-                  <Text style={styles.cardStatus}>{publicKey.toBase58().substring(0, 8)}...</Text>
+                  <Text style={styles.cardStatus}>
+                    {publicKey.toBase58().substring(0, 8)}...
+                  </Text>
                 </View>
               ) : (
                 <View style={styles.readyState}>
@@ -97,9 +114,15 @@ export default function WalletConnectScreen() {
 
       <View style={styles.footer}>
         <FadeInView delay={1600}>
-          <SeekerButton 
-            title={isVerifying ? "Verifying..." : connected ? "Connected" : "Connect Wallet"} 
-            onPress={handleConnect} 
+          <SeekerButton
+            title={
+              isVerifying
+                ? "Verifying..."
+                : connected
+                  ? "Connected"
+                  : "Connect Wallet"
+            }
+            onPress={handleConnect}
             disabled={isVerifying}
           />
         </FadeInView>
@@ -109,19 +132,19 @@ export default function WalletConnectScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: Theme.colors.background 
+  container: {
+    flex: 1,
+    backgroundColor: Theme.colors.background,
   },
-  content: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    paddingHorizontal: Theme.spacing.xl 
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: Theme.spacing.xl,
   },
   headline: {
     color: Theme.colors.text.high,
     fontSize: 32,
-    fontWeight: '300',
+    fontWeight: "300",
     lineHeight: 42,
   },
   description: {
@@ -129,7 +152,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     marginTop: Theme.spacing.md,
-    fontWeight: '300',
+    fontWeight: "300",
   },
   cardContainer: {
     marginTop: Theme.spacing.xl,
@@ -137,12 +160,12 @@ const styles = StyleSheet.create({
   },
   mockCard: {
     backgroundColor: Theme.colors.surface,
-    height: '100%',
+    height: "100%",
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: Theme.spacing.lg,
   },
   walletIcon: {
@@ -151,21 +174,21 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: Theme.colors.primary,
     marginBottom: Theme.spacing.md,
-    opacity: 0.8
+    opacity: 0.8,
   },
   cardTitle: {
     color: Theme.colors.text.high,
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   cardStatus: {
     color: Theme.colors.accent,
     fontSize: 14,
     marginTop: 4,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   loadingState: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   loadingText: {
     color: Theme.colors.text.medium,
@@ -174,10 +197,10 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   readyState: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   footer: {
     padding: Theme.spacing.xl,
     paddingBottom: 60,
-  }
+  },
 });

@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-import { Theme } from '../../src/theme';
-import { FadeInView } from '../../src/animations/FadeInView';
-import { SeekerButton } from '../../src/components/SeekerButton';
-import { useAppStore } from '../../src/store/useAppStore';
-import { sessionManager } from '../../src/security/sessionManager';
+import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { FadeInView } from "../../src/animations/FadeInView";
+import { SeekerButton } from "../../src/components/SeekerButton";
+import { sessionManager } from "../../src/security/sessionManager";
+import { useAppStore } from "../../src/store/useAppStore";
+import { Theme } from "../../src/theme";
 
 export default function BiometricScreen() {
-  const [status, setStatus] = useState<'idle' | 'verifying' | 'success'>('idle');
+  const [status, setStatus] = useState<"idle" | "verifying" | "success">(
+    "idle",
+  );
   const { completeOnboarding, setWalletConnected } = useAppStore();
 
   const handleVerify = () => {
-    setStatus('verifying');
+    setStatus("verifying");
     setTimeout(async () => {
-      setStatus('success');
+      setStatus("success");
       setWalletConnected(true);
       await sessionManager.login();
       setTimeout(() => {
@@ -37,17 +39,21 @@ export default function BiometricScreen() {
 
         <View style={styles.biometricContainer}>
           <FadeInView delay={1200} direction="none">
-            <View style={[
-              styles.iconCircle, 
-              status === 'success' && { borderColor: Theme.colors.accent }
-            ]}>
-              <Text style={[
-                styles.statusText,
-                status === 'success' && { color: Theme.colors.accent }
-              ]}>
-                {status === 'idle' && "TAP TO SCAN"}
-                {status === 'verifying' && "VERIFYING..."}
-                {status === 'success' && "SECURED"}
+            <View
+              style={[
+                styles.iconCircle,
+                status === "success" && { borderColor: Theme.colors.accent },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusText,
+                  status === "success" && { color: Theme.colors.accent },
+                ]}
+              >
+                {status === "idle" && "TAP TO SCAN"}
+                {status === "verifying" && "VERIFYING..."}
+                {status === "success" && "SECURED"}
               </Text>
             </View>
           </FadeInView>
@@ -56,9 +62,9 @@ export default function BiometricScreen() {
 
       <View style={styles.footer}>
         <FadeInView delay={1600}>
-          <SeekerButton 
-            title={status === 'success' ? "Welcome Home" : "Enable Biometrics"} 
-            onPress={handleVerify} 
+          <SeekerButton
+            title={status === "success" ? "Welcome Home" : "Enable Biometrics"}
+            onPress={handleVerify}
           />
         </FadeInView>
       </View>
@@ -67,50 +73,50 @@ export default function BiometricScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: Theme.colors.background 
+  container: {
+    flex: 1,
+    backgroundColor: Theme.colors.background,
   },
-  content: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    paddingHorizontal: Theme.spacing.xl 
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: Theme.spacing.xl,
   },
   headline: {
     color: Theme.colors.text.high,
     fontSize: 32,
-    fontWeight: '300',
+    fontWeight: "300",
   },
   description: {
     color: Theme.colors.text.medium,
     fontSize: 16,
     lineHeight: 24,
     marginTop: Theme.spacing.md,
-    fontWeight: '300',
+    fontWeight: "300",
   },
   biometricContainer: {
     marginTop: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconCircle: {
     width: 180,
     height: 180,
     borderRadius: 90,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: Theme.colors.surface,
   },
   statusText: {
     color: Theme.colors.text.low,
     fontSize: 12,
     letterSpacing: 2,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footer: {
     padding: Theme.spacing.xl,
     paddingBottom: 60,
-  }
+  },
 });

@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
 import { Dimensions, StyleSheet, View, ViewStyle } from "react-native";
 import Animated, {
+    cancelAnimation,
     Easing,
     Extrapolation,
     interpolate,
@@ -48,6 +49,8 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
     );
 
     const triggerShimmer = () => {
+      // FIX 3: Cancel any in-flight shimmer animation before resetting
+      cancelAnimation(shimmer);
       shimmer.value = -1;
       shimmer.value = withDelay(
         500,
@@ -62,9 +65,12 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
 
     const interval = setInterval(triggerShimmer, 6000);
     return () => clearInterval(interval);
-  }, []);
+  // FIX 4: Include shared values in the dependency array
+  }, [shimmer, parallaxY, breath]);
 
-  const animatedContainerStyle = useAnimatedStyle(() => ({
+  // FIX 1: Shadow styles moved to a separate outer wrapper (no overflow: "hidden")
+  // so iOS shadows are not clipped.
+  const animatedShadowStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: parallaxY.value }],
     shadowOpacity: interpolate(breath.value, [0, 1], [0.3, 0.6]),
     shadowRadius: interpolate(breath.value, [0, 1], [20, 35]),
@@ -85,85 +91,97 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
     ),
   }));
 
-  // Fixed: Use opacity instead of interpolating borderColor (TS-safe)
   const borderStyle = useAnimatedStyle(() => ({
     opacity: interpolate(breath.value, [0, 1], [0.1, 0.3]),
   }));
 
   return (
+    // FIX 1: Outer wrapper handles shadow only — no overflow: "hidden" here
     <Animated.View
       style={[
-        styles.container,
+        styles.shadowWrapper,
         { borderRadius },
         style,
-        animatedContainerStyle,
+        animatedShadowStyle,
       ]}
     >
-      {/* 1. Base Layer */}
-      <LinearGradient
-        colors={["rgba(255,255,255,0.15)", "rgba(255,255,255,0.02)"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={[StyleSheet.absoluteFill, { borderRadius }]}
-      />
+      {/* FIX 1: Inner wrapper handles clipping — shadows are unaffected */}
+      <View style={[styles.clipWrapper, { borderRadius }]}>
+        {/* 1. Base Layer */}
+        <LinearGradient
+          colors={["rgba(255,255,255,0.15)", "rgba(255,255,255,0.02)"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={[StyleSheet.absoluteFill, { borderRadius }]}
+        />
 
-      {/* 2. Blur Layer */}
-      <BlurView
-        intensity={intensity}
-        tint="default"
-        style={[StyleSheet.absoluteFill, { borderRadius }]}
-      />
+        {/* 2. Blur Layer */}
+        <BlurView
+          intensity={intensity}
+          tint="default"
+          style={[StyleSheet.absoluteFill, { borderRadius }]}
+        />
 
-      {/* 3. Texture Overlay */}
-      <View
-        style={[
-          StyleSheet.absoluteFill,
-          { borderRadius, backgroundColor: "rgba(255,255,255,0.03)" },
-        ]}
-      />
+        {/* 3. Texture Overlay */}
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { borderRadius, backgroundColor: "rgba(255,255,255,0.03)" },
+          ]}
+        />
 
-      {/* 4. Lighting Highlight */}
-      <LinearGradient
-        colors={["rgba(255,255,255,0.15)", "transparent", "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[StyleSheet.absoluteFill, { borderRadius }]}
-        pointerEvents="none"
-      />
-
-      {/* 5. Shimmer Layer */}
-      <View
-        style={[StyleSheet.absoluteFill, { borderRadius, overflow: "hidden" }]}
-      >
-        <Animated.View style={[StyleSheet.absoluteFill, shimmerStyle]}>
+        {/* 4. Lighting Highlight — FIX 2: wrap in View with pointerEvents */}
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { borderRadius }]}
+        >
           <LinearGradient
-            colors={["transparent", "rgba(255,255,255,0.3)", "transparent"]}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={StyleSheet.absoluteFill}
+            colors={["rgba(255,255,255,0.15)", "transparent", "transparent"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[StyleSheet.absoluteFill, { borderRadius }]}
           />
-        </Animated.View>
+        </View>
+
+        {/* 5. Shimmer Layer */}
+        <View
+          style={[StyleSheet.absoluteFill, { borderRadius, overflow: "hidden" }]}
+        >
+          <Animated.View style={[StyleSheet.absoluteFill, shimmerStyle]}>
+            <LinearGradient
+              colors={["transparent", "rgba(255,255,255,0.3)", "transparent"]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+        </View>
+
+        {/* 6. Animated Border */}
+        <Animated.View
+          style={[styles.border, { borderRadius }, borderStyle]}
+          pointerEvents="none"
+        />
+
+        {/* Content */}
+        <View style={styles.content}>{children}</View>
       </View>
-
-      {/* 6. Animated Border (Fixed) */}
-      <Animated.View
-        style={[styles.border, { borderRadius }, borderStyle]}
-        pointerEvents="none"
-      />
-
-      {/* Content */}
-      <View style={styles.content}>{children}</View>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  // FIX 1: Shadow wrapper — no overflow so iOS shadows render correctly
+  shadowWrapper: {
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     elevation: 10,
     backgroundColor: "transparent",
+  },
+  // FIX 1: Clip wrapper — overflow: "hidden" lives here, away from shadows
+  clipWrapper: {
     overflow: "hidden",
+    backgroundColor: "transparent",
   },
   border: {
     ...StyleSheet.absoluteFillObject,

@@ -1,0 +1,30 @@
+app/(onboarding)/biometric.tsx(18,28): error TS2339: Property 'login' does not exist on type '{ saveSession(data: SessionData): Promise<void>; loadSession(): Promise<boolean>; clearSession(): Promise<void>; authenticateBiometrics(): Promise<...>; lockApp(): void; logout(): Promise<...>; }'.
+app/(onboarding)/wallet.tsx(32,43): error TS2345: Argument of type 'Buffer' is not assignable to parameter of type 'Uint8Array<ArrayBufferLike>'.
+  The types returned by 'slice(...).entries()' are incompatible between these types.
+    Type 'IterableIterator<[number, number]>' is missing the following properties from type 'ArrayIterator<[number, number]>': map, filter, take, drop, and 9 more.
+app/_layout.tsx(20,32): error TS2724: '"@solana/wallet-adapter-wallets"' has no exported member named 'BackpackWalletAdapter'. Did you mean 'AlphaWalletAdapter'?
+app/_layout.tsx(60,26): error TS7006: Parameter 'file' implicitly has an 'any' type.
+src/animations/FadeInView.tsx(37,7): error TS2322: Type 'EasingFunctionFactory' is not assignable to type 'EasingFunction'.
+  Type 'EasingFunctionFactory' provides no match for the signature '(t: number): number'.
+src/animations/FadeInView.tsx(46,7): error TS2322: Type 'EasingFunctionFactory' is not assignable to type 'EasingFunction'.
+  Type 'EasingFunctionFactory' provides no match for the signature '(t: number): number'.
+src/components/BiometricModal.tsx(12,3): error TS2614: Module '"react-native-reanimated"' has no exported member 'ScaleInCenter'. Did you mean to use 'import ScaleInCenter from "react-native-reanimated"' instead?
+src/components/BiometricModal.tsx(13,3): error TS2614: Module '"react-native-reanimated"' has no exported member 'ScaleOutCenter'. Did you mean to use 'import ScaleOutCenter from "react-native-reanimated"' instead?
+src/components/dashboard/IdentityCard.tsx(157,34): error TS2339: Property 'border' does not exist on type '{ background: string; surface: string; primary: string; accent: string; text: { high: string; medium: string; low: string; }; liquidGlass: { dark: { background: string; border: string[]; highlight: string; }; light: { ...; }; }; }'.
+src/components/dashboard/IdentityInsightCard.tsx(26,7): error TS2322: Type '({ marginTop: number; padding: number; } | { borderColor: string; borderWidth: number; })[]' is not assignable to type 'ViewStyle'.
+  Types of property 'filter' are incompatible.
+    Type '{ <S extends { marginTop: number; padding: number; } | { borderColor: string; borderWidth: number; }>(predicate: (value: { marginTop: number; padding: number; } | { borderColor: string; borderWidth: number; }, index: number, array: ({ ...; } | { ...; })[]) => value is S, thisArg?: any): S[]; (predicate: (value: { .....' is not assignable to type 'string | readonly FilterFunction[] | undefined'.
+src/components/dashboard/SecurityInsightCard.tsx(80,9): error TS2322: Type '({ marginTop: number; } | { borderColor: string; })[]' is not assignable to type 'ViewStyle'.
+  Types of property 'filter' are incompatible.
+    Type '{ <S extends { marginTop: number; } | { borderColor: string; }>(predicate: (value: { marginTop: number; } | { borderColor: string; }, index: number, array: ({ marginTop: number; } | { borderColor: string; })[]) => value is S, thisArg?: any): S[]; (predicate: (value: { ...; } | { ...; }, index: number, array: ({ ...;...' is not assignable to type 'string | readonly FilterFunction[] | undefined'.
+src/components/HandleClaimModal.tsx(87,14): error TS2322: Type '{ children: false | Element; title: string; onPress: () => Promise<void>; style: { flex: number; height: number; }; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SeekerButtonProps'.
+  Property 'children' does not exist on type 'IntrinsicAttributes & SeekerButtonProps'.
+src/components/ui/LiquidGlassSurface.tsx(66,22): error TS2694: Namespace '"C:/Users/USER/seeker identity hub/node_modules/react-native-reanimated/lib/typescript/Animated"' has no exported member 'SharedValue'.
+src/components/ui/LiquidGlassSurface.tsx(127,16): error TS2739: Type '{ children: Element; scale: number; }' is missing the following properties from type 'AnimatedProps<DisplacementMapImageFilterProps, never>': channelX, channelY
+src/components/ui/LiquidGlassSurface.tsx(192,7): error TS2451: Cannot redeclare block-scoped variable 'styles'.
+src/components/ui/LiquidGlassSurface.tsx(200,7): error TS2451: Cannot redeclare block-scoped variable 'styles'.
+src/security/walletVerification.ts(22,7): error TS2345: Argument of type 'Buffer' is not assignable to parameter of type 'Uint8Array<ArrayBufferLike>'.
+  The types returned by 'slice(...).entries()' are incompatible between these types.
+    Type 'IterableIterator<[number, number]>' is missing the following properties from type 'ArrayIterator<[number, number]>': map, filter, take, drop, and 9 more.
+src/services/mockTransactionService.ts(37,11): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'Omit<AppActivity, "id" | "timestamp">'.
+src/services/mockTransactionService.ts(50,11): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'Omit<AppActivity, "id" | "timestamp">'.

@@ -1,5 +1,5 @@
-import { PublicKey } from '@solana/web3.js';
-import nacl from 'tweetnacl';
+import { PublicKey } from "@solana/web3.js";
+import nacl from "tweetnacl";
 
 export const generateVerificationMessage = (address: string) => {
   const timestamp = Date.now();
@@ -13,18 +13,18 @@ Nonce: ${nonce}`;
 export const verifyWalletSignature = (
   message: string,
   signature: Uint8Array,
-  publicKeyStr: string
+  publicKeyStr: string,
 ): boolean => {
   try {
     const publicKey = new PublicKey(publicKeyStr);
-    const messageBytes = Buffer.from(message, 'utf8');
+    const messageBytes = Buffer.from(message, "utf8");
     return nacl.sign.detached.verify(
       messageBytes,
       signature,
-      publicKey.toBytes()
+      publicKey.toBytes(),
     );
   } catch (error) {
-    console.error('Signature verification failed:', error);
+    console.error("Signature verification failed:", error);
     return false;
   }
 };
