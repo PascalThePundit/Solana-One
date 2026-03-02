@@ -1,15 +1,150 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet, Switch, TouchableOpacity, Alert, ActivityIndicator, View } from 'react-native';
+import { useState, useCallback } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import bs58 from 'bs58';
 
 import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { Fonts, Colors } from '@/constants/theme';
+import { useAppStore } from '@/src/store/useAppStore';
+import { SyncService } from '@/src/services/syncService';
 
-export default function TabTwoScreen() {
+export default function ExploreScreen() {
+  const { publicKey, signMessage } = useWallet();
+  const { 
+    isCloudSyncActive, 
+    setCloudSync, 
+    lastCloudSync, 
+    setLastCloudSync,
+    rehydrateStore,
+    ...storeState 
+  } = useAppStore();
+
+  const [loading, setLoading] = useState(false);
+
+  const getBackupKey = async () => {
+    if (!signMessage || !publicKey) return null;
+    const message = new TextEncoder().encode("So1ana Cloud Sync Encryption Key");
+    const signature = await signMessage(message);
+    return SyncService.deriveKey(bs58.encode(signature));
+  };
+
+  const handleToggleSync = async (value: boolean) => {
+    if (!publicKey || !signMessage) {
+      Alert.alert("Wallet Required", "Please connect your wallet to use Cloud Sync.");
+      return;
+    }
+
+    if (value) {
+      setLoading(true);
+      try {
+        const message = `Login to So1ana Hub Cloud Sync: ${new Date().toISOString()}`;
+        const signature = await signMessage(new TextEncoder().encode(message));
+        const success = await SyncService.login(
+          publicKey.toBase58(),
+          bs58.encode(signature),
+          message
+        );
+
+        if (success) {
+          setCloudSync(true);
+          await handleUpload();
+        } else {
+          Alert.alert("Error", "Failed to authenticate with cloud server.");
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setCloudSync(false);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!publicKey) return;
+    setLoading(true);
+    try {
+      const key = await getBackupKey();
+      if (!key) return;
+
+      // Extract relevant state for backup
+      const backupData = {
+        identityData: storeState.identityData,
+        isBiometricActive: storeState.isBiometricActive,
+        activityHistory: storeState.activityHistory,
+        notifications: storeState.notifications,
+      };
+
+      const encrypted = SyncService.encrypt(backupData, key);
+      const success = await SyncService.uploadBackup(encrypted);
+      
+      if (success) {
+        setLastCloudSync(new Date().toISOString());
+      }
+    } catch (e) {
+      Alert.alert("Backup Failed", "Unable to secure your data in the cloud.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!publicKey) return;
+    setLoading(true);
+    try {
+      const key = await getBackupKey();
+      if (!key) return;
+
+      const backup = await SyncService.downloadBackup();
+      if (!backup) {
+        Alert.alert("No Backup", "No existing cloud backup found for this wallet.");
+        return;
+      }
+
+      const decrypted = SyncService.decrypt(backup.encryptedBlob, key);
+      if (decrypted) {
+        rehydrateStore(decrypted);
+        setLastCloudSync(backup.updatedAt);
+        Alert.alert("Success", "Application state restored successfully.");
+      } else {
+        Alert.alert("Error", "Failed to decrypt backup. Ensure you are using the correct wallet.");
+      }
+    } catch (e) {
+      Alert.alert("Restore Failed", "Error connecting to cloud sync.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteBackup = () => {
+    Alert.alert(
+      "Delete Backup",
+      "This will permanently remove your data from the cloud. Continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: async () => {
+            setLoading(true);
+            const success = await SyncService.deleteBackup();
+            if (success) {
+              setLastCloudSync(null);
+              setCloudSync(false);
+              Alert.alert("Deleted", "Cloud backup removed.");
+            }
+            setLoading(false);
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
@@ -17,82 +152,65 @@ export default function TabTwoScreen() {
         <IconSymbol
           size={310}
           color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
+          name="cloud.fill"
           style={styles.headerImage}
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
+        <ThemedText type="title" style={{ fontFamily: Fonts.rounded }}>Settings</ThemedText>
       </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
+
+      <Collapsible title="Cloud Sync (Zero-Knowledge)" defaultOpen>
+        <ThemedView style={styles.settingItem}>
+          <ThemedView>
+            <ThemedText type="defaultSemiBold">Enable Cloud Backup</ThemedText>
+            <ThemedText style={styles.settingDesc}>AES-256 encrypted. We never see your data.</ThemedText>
+          </ThemedView>
+          <Switch
+            value={isCloudSyncActive}
+            onValueChange={handleToggleSync}
+            trackColor={{ false: '#767577', true: Colors.dark.tint }}
+          />
+        </ThemedView>
+
+        {isCloudSyncActive && (
+          <ThemedView style={styles.syncStatus}>
+            <ThemedText style={styles.statusText}>
+              Last Sync: {lastCloudSync ? new Date(lastCloudSync).toLocaleString() : 'Never'}
             </ThemedText>
-          ),
-        })}
+            
+            <View style={styles.buttonRow}>
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.primaryButton]} 
+                onPress={handleUpload}
+                disabled={loading}
+              >
+                {loading ? <ActivityIndicator size="small" color="#fff" /> : <ThemedText style={styles.buttonText}>Backup Now</ThemedText>}
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.actionButton} 
+                onPress={handleRestore}
+                disabled={loading}
+              >
+                <ThemedText style={styles.buttonText}>Restore</ThemedText>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.deleteButton} 
+              onPress={handleDeleteBackup}
+              disabled={loading}
+            >
+              <ThemedText style={styles.deleteButtonText}>Delete Cloud Backup</ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+        )}
+      </Collapsible>
+
+      <Collapsible title="System Information">
+        <ThemedText>Wallet: {publicKey ? publicKey.toBase58().slice(0, 8) + '...' : 'Disconnected'}</ThemedText>
+        <ThemedText>Platform: {StyleSheet.flatten(styles.headerImage).position === 'absolute' ? 'Mobile' : 'Web'}</ThemedText>
       </Collapsible>
     </ParallaxScrollView>
   );
@@ -108,5 +226,55 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
+    marginBottom: 16,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  settingDesc: {
+    fontSize: 12,
+    opacity: 0.6,
+  },
+  syncStatus: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 8,
+  },
+  statusText: {
+    fontSize: 13,
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  actionButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#333',
+    alignItems: 'center',
+  },
+  primaryButton: {
+    backgroundColor: Colors.dark.tint,
+  },
+  buttonText: {
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  deleteButton: {
+    padding: 12,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#ff4444',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

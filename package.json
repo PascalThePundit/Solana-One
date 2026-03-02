@@ -19,7 +19,9 @@
     "@solana/wallet-adapter-react-ui": "^0.9.39",
     "@solana/wallet-adapter-wallets": "^0.19.37",
     "@solana/web3.js": "^1.91.1",
+    "bs58": "^6.0.0",
     "buffer": "^6.0.3",
+    "crypto-js": "^4.2.0",
     "expo": "^54.0.0",
     "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.13",
@@ -55,6 +57,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
     "@types/react": "~19.1.10",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-transform-import-meta": "^2.3.3",

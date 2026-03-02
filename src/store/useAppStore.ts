@@ -72,6 +72,10 @@ interface AppState {
   // Demo Mode
   isDemoMode: boolean;
 
+  // Cloud Sync
+  isCloudSyncActive: boolean;
+  lastCloudSync: string | null;
+
   // Actions
   completeOnboarding: () => void;
   setWalletState: (connected: boolean, publicKey: string | null) => void;
@@ -87,6 +91,9 @@ interface AppState {
   clearNotifications: () => void;
   addActivity: (activity: Omit<AppActivity, 'id' | 'timestamp'>) => void;
   setDemoMode: (enabled: boolean) => void;
+  setCloudSync: (active: boolean) => void;
+  setLastCloudSync: (timestamp: string | null) => void;
+  rehydrateStore: (data: any) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -107,6 +114,8 @@ export const useAppStore = create<AppState>((set) => ({
   notificationsCount: 0,
   activityHistory: [],
   isDemoMode: false,
+  isCloudSyncActive: false,
+  lastCloudSync: null,
 
   completeOnboarding: () => set((state) => ({ ...state, isOnboarded: true })),
   
@@ -172,4 +181,15 @@ export const useAppStore = create<AppState>((set) => ({
   })),
 
   setDemoMode: (enabled) => set((state) => ({ ...state, isDemoMode: enabled })),
+
+  setCloudSync: (active) => set((state) => ({ ...state, isCloudSyncActive: active })),
+  
+  setLastCloudSync: (timestamp) => set((state) => ({ ...state, lastCloudSync: timestamp })),
+
+  rehydrateStore: (data) => set((state) => ({
+    ...state,
+    ...data,
+    walletConnected: state.walletConnected, // Preserve connection state
+    walletPublicKey: state.walletPublicKey,
+  })),
 }));
