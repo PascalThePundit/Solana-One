@@ -399,40 +399,44 @@ const styles = StyleSheet.create({
     marginBottom: 44 
   },
   appName: {
-    color: Theme.colors.primary,
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 2,
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    marginBottom: 4,
-    opacity: 0.8
+    marginBottom: 6,
+    opacity: 0.6,
   },
   greeting: { 
     color: '#fff', 
-    fontSize: 28, 
-    fontWeight: '300',
-    letterSpacing: -1
+    fontSize: 32, 
+    fontWeight: '700',
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(255,255,255,0.15)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   handleText: {
     color: Theme.colors.primary,
     fontSize: 16,
     fontWeight: '700',
-    marginTop: 2
+    marginTop: 4,
+    letterSpacing: 0.2,
   },
   subGreeting: { 
-    color: Theme.colors.text.medium, 
-    fontSize: 13, 
-    marginTop: 6,
-    opacity: 0.7 
+    color: 'rgba(255,255,255,0.5)', 
+    fontSize: 14, 
+    marginTop: 8,
+    fontWeight: '500',
   },
   profileBtn: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
   },
   profilePlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1.2,
     borderColor: 'rgba(255,255,255,0.12)',
@@ -450,16 +454,15 @@ const styles = StyleSheet.create({
     borderColor: '#000'
   },
   section: { 
-    marginTop: 44 
+    marginTop: 48 
   },
   sectionTitle: { 
-    color: Theme.colors.text.low, 
-    fontSize: 10, 
-    letterSpacing: 3, 
-    fontWeight: '900', 
-    marginBottom: 22, 
+    color: 'rgba(255,255,255,0.4)', 
+    fontSize: 11, 
+    letterSpacing: 2, 
+    fontWeight: '800', 
+    marginBottom: 24, 
     textTransform: 'uppercase',
-    opacity: 0.6
   },
   actionRow: { 
     flexDirection: 'row', 

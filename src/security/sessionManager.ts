@@ -102,6 +102,12 @@ export const sessionManager = {
   async logout() {
     await this.clearSession();
     useIdentityStore.getState().logout();
+  },
+
+  async login() {
+    // This is called after biometric verification
+    // For now, it's just a hook for future session management
+    return true;
   }
 };
 

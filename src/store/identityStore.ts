@@ -3,6 +3,8 @@ import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { connection } from '../solana/connection';
 import { analyzeWalletIntelligence, AnalysisResult } from '../analysis/walletAnalyzer';
 import { getStoredHandle } from '../identity/handleRegistry';
+import { WalletMonitor } from '../services/walletMonitor';
+import { Alert } from '../security/riskEngine';
 
 export interface Wallet {
   id: string;
@@ -33,6 +35,8 @@ interface IdentityState {
   isLoading: boolean;
   intelligence: AnalysisResult | null;
   handle: string | null;
+  alerts: Alert[];
+  monitor: WalletMonitor | null;
   
   // Actions
   login: (publicKeyStr?: string) => Promise<void>;
@@ -44,8 +48,12 @@ interface IdentityState {
   updateInteraction: () => void;
   refreshAllData: () => Promise<void>;
   setHandle: (handle: string | null) => void;
+  addAlert: (alert: Alert) => void;
   
-  // Computed (via getters/selectors)
+  // UI Integration
+  getAlerts: () => Alert[];
+  getRiskLevel: () => number;
+  getRecentActivity: () => WalletActivity[];
   getAggregatedBalance: () => number;
   getActiveWallet: () => Wallet | null;
   getCombinedActivity: () => WalletActivity[];
@@ -62,13 +70,14 @@ export const useIdentityStore = create<IdentityState>((set, get) => ({
   isLoading: false,
   intelligence: null,
   handle: null,
+  alerts: [],
+  monitor: null,
 
   login: async (publicKeyStr?: string) => {
     if (!publicKeyStr) return;
     
     set({ isLoading: true });
     
-    // Set up the primary wallet from the connected Solana wallet
     const initialWallets: Wallet[] = [
       {
         id: 'primary',
@@ -91,11 +100,16 @@ export const useIdentityStore = create<IdentityState>((set, get) => ({
       handle: storedHandle
     });
 
-    // Trigger immediate balance and transaction fetch
+    // Initialize Monitor
+    const monitor = new WalletMonitor(connection);
+    monitor.setWallets(initialWallets.map(w => w.address));
+    monitor.onAlert((alert) => get().addAlert(alert));
+    monitor.start();
+    set({ monitor });
+
     await get().refreshAllData();
     set({ isLoading: false });
     
-    // Save session using the updated structure
     import('../security/sessionManager').then(({ sessionManager }) => {
       sessionManager.saveSession({
         userId: `user_${publicKeyStr.substring(0, 8)}`,
@@ -106,6 +120,9 @@ export const useIdentityStore = create<IdentityState>((set, get) => ({
   },
 
   logout: () => {
+    const { monitor } = get();
+    if (monitor) monitor.stop();
+
     set({
       userId: null,
       wallets: [],
@@ -113,7 +130,9 @@ export const useIdentityStore = create<IdentityState>((set, get) => ({
       isAuthenticated: false,
       isLocked: false,
       recentActivity: [],
-      handle: null
+      handle: null,
+      alerts: [],
+      monitor: null
     });
     
     import('../security/sessionManager').then(({ sessionManager }) => {
@@ -145,13 +164,20 @@ export const useIdentityStore = create<IdentityState>((set, get) => ({
 
   hydrateSession: async (data) => {
     const storedHandle = await getStoredHandle();
+    
+    const monitor = new WalletMonitor(connection);
+    monitor.setWallets(data.wallets.map(w => w.address));
+    monitor.onAlert((alert) => get().addAlert(alert));
+    monitor.start();
+
     set({
       userId: data.userId,
       activeWalletId: data.activeWalletId,
       wallets: data.wallets,
       isAuthenticated: true,
       isLocked: true,
-      handle: storedHandle
+      handle: storedHandle,
+      monitor
     });
     get().refreshAllData();
   },
@@ -162,10 +188,32 @@ export const useIdentityStore = create<IdentityState>((set, get) => ({
 
   setHandle: (handle: string | null) => {
     set({ handle });
-    // Re-run analysis when handle changes
     const { wallets, recentActivity } = get();
     const intelligence = analyzeWalletIntelligence(wallets, recentActivity, handle);
     set({ intelligence });
+  },
+
+  addAlert: (alert: Alert) => {
+    const { alerts, intelligence } = get();
+    const updatedAlerts = [alert, ...alerts].slice(0, 50); // Keep last 50
+    
+    // Impact Intelligence
+    if (intelligence) {
+      const riskImpact = alert.riskLevel * 2;
+      const newScore = Math.max(0, intelligence.identityScore - riskImpact);
+      const newRiskLevel = alert.riskLevel >= 4 ? 'High' : (alert.riskLevel >= 2 ? 'Moderate' : intelligence.riskLevel);
+      
+      set({
+        alerts: updatedAlerts,
+        intelligence: {
+          ...intelligence,
+          identityScore: newScore,
+          riskLevel: newRiskLevel as 'Low' | 'Moderate' | 'High'
+        }
+      });
+    } else {
+      set({ alerts: updatedAlerts });
+    }
   },
 
   refreshAllData: async () => {
@@ -185,32 +233,28 @@ export const useIdentityStore = create<IdentityState>((set, get) => ({
             lastActive: new Date().toISOString()
           };
         } catch (err) {
-          console.error(`Failed to fetch balance for ${wallet.address}:`, err);
           return { ...wallet, balance: 0 };
         }
       }));
 
-      // Fetch transactions
       const allActivities: WalletActivity[] = [];
       await Promise.all(wallets.map(async (wallet) => {
         try {
           const pubKey = new PublicKey(wallet.address);
-          const signatures = await connection.getSignaturesForAddress(pubKey, { limit: 5 });
+          const signatures = await connection.getSignaturesForAddress(pubKey, { limit: 10 });
           
           signatures.forEach(sig => {
             allActivities.push({
               id: sig.signature,
               walletId: wallet.id,
               title: 'Blockchain Activity',
-              status: 'approved',
+              status: sig.err ? 'denied' : 'approved',
               timestamp: sig.blockTime ? new Date(sig.blockTime * 1000).toISOString() : new Date().toISOString(),
               signature: sig.signature,
               amount: 'View'
             });
           });
-        } catch (err) {
-          console.error(`Failed to fetch transactions for ${wallet.address}:`, err);
-        }
+        } catch (err) {}
       }));
 
       const sortedActivity = allActivities.sort((a, b) => 
@@ -225,11 +269,20 @@ export const useIdentityStore = create<IdentityState>((set, get) => ({
         intelligence
       });
     } catch (error) {
-      console.error('Refresh failed:', error);
     } finally {
       set({ isLoading: false });
     }
   },
+
+  getAlerts: () => get().alerts,
+  
+  getRiskLevel: () => {
+    const { alerts } = get();
+    if (alerts.length === 0) return 1;
+    return Math.max(...alerts.map(a => a.riskLevel));
+  },
+
+  getRecentActivity: () => get().recentActivity,
 
   getAggregatedBalance: () => {
     return get().wallets.reduce((acc, w) => acc + w.balance, 0);
@@ -244,3 +297,4 @@ export const useIdentityStore = create<IdentityState>((set, get) => ({
     return get().recentActivity;
   }
 }));
+

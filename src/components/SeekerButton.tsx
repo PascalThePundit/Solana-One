@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text, StyleSheet, ViewStyle, Platform } from 'react-native';
+import { Pressable, Text, StyleSheet, ViewStyle, StyleProp, Platform } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Theme } from '../theme';
@@ -8,11 +8,12 @@ interface SeekerButtonProps {
   title: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'outline';
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   disabled?: boolean;
+  children?: React.ReactNode;
 }
 
-export const SeekerButton = React.memo(({ title, onPress, variant = 'primary', style, disabled }: SeekerButtonProps) => {
+export const SeekerButton = React.memo(({ title, onPress, variant = 'primary', style, disabled, children }: SeekerButtonProps) => {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -59,9 +60,16 @@ export const SeekerButton = React.memo(({ title, onPress, variant = 'primary', s
       onPress={disabled ? undefined : onPress}
     >
       <Animated.View style={[styles.button, getVariantStyle(), animatedStyle, style]}>
-        <Text style={[styles.text, variant === 'outline' && { color: Theme.colors.primary }]}>
-          {title}
-        </Text>
+        {title ? (
+          <Text style={[
+            styles.text, 
+            variant === 'primary' ? { color: '#000' } : { color: '#fff' },
+            variant === 'outline' && { color: Theme.colors.primary }
+          ]}>
+            {title}
+          </Text>
+        ) : null}
+        {children}
       </Animated.View>
     </Pressable>
   );
@@ -91,10 +99,10 @@ const styles = StyleSheet.create({
     }),
   },
   text: { 
-    color: '#fff', 
-    fontWeight: '600', 
-    fontSize: 16, 
-    letterSpacing: 1,
-    textTransform: 'uppercase'
+    color: '#000', 
+    fontWeight: '800', 
+    fontSize: 14, 
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
 });

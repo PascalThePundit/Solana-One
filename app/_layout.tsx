@@ -1,10 +1,4 @@
-import { Buffer } from "buffer";
-import process from "process";
-import "react-native-get-random-values";
-import "react-native-url-polyfill/auto";
-
-global.Buffer = Buffer;
-global.process = process;
+import "./../shims";
 
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
@@ -21,7 +15,6 @@ import {
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
-    BackpackWalletAdapter,
     PhantomWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
@@ -147,7 +140,7 @@ export default function RootLayout() {
 
   const endpoint = useMemo(() => clusterApiUrl("devnet"), []);
   const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new BackpackWalletAdapter()],
+    () => [new PhantomWalletAdapter()],
     [],
   );
 

@@ -54,9 +54,12 @@ export const LiquidGlassButton: React.FC<LiquidGlassButtonProps> = ({
 const styles = StyleSheet.create({
   text: {
     color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '600',
-    letterSpacing: -0.4,
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     textAlign: 'center',
+    textShadowColor: 'rgba(255,255,255,0.2)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
   },
 });

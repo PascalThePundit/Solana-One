@@ -9,8 +9,8 @@ import Animated, {
   Easing,
   FadeIn,
   FadeOut,
-  ScaleInCenter,
-  ScaleOutCenter,
+  ZoomIn,
+  ZoomOut,
   interpolate
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
@@ -70,8 +70,8 @@ export const BiometricModal = () => {
         </Animated.View>
 
         <Animated.View 
-          entering={ScaleInCenter.springify().damping(18).stiffness(120)}
-          exiting={ScaleOutCenter}
+          entering={ZoomIn.springify().damping(18).stiffness(120)}
+          exiting={ZoomOut}
           style={[styles.modalContent, animatedContentStyle]}
         >
           <LinearGradient

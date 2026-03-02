@@ -7,7 +7,11 @@
     "icon": "./assets/images/icon.png",
     "scheme": "seekeridentityhub",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
+    "updates": {
+      "enabled": false,
+      "checkOnLaunch": "NEVER"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -22,7 +26,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -41,8 +45,7 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     }
   }
 }

@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     borderTopWidth: 1, 
-    borderTopColor: Theme.colors.border, 
+    borderTopColor: 'rgba(255,255,255,0.1)', 
     paddingTop: 18 
   },
   statLabel: { 

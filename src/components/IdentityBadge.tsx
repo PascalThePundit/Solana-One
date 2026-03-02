@@ -46,6 +46,5 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: Theme.colors.primary,
     opacity: 0.15,
-    filter: 'blur(10px)',
   },
 });

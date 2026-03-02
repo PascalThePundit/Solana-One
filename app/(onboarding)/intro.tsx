@@ -53,11 +53,13 @@ export default function IntroScreen() {
       <View style={styles.content}>
         <FadeInView delay={300}>
           <GlassCard style={styles.loginCard} intensity={40} variant="highlight">
-            <Text style={styles.title}>So1ana Hub</Text>
-            <Text style={styles.subtitle}>Unified Solana Identity</Text>
-            
-            <View style={styles.spacer} />
-            
+            <View style={styles.titleContainer}>
+              <Text style={styles.headline}>So1ana</Text>
+              <Text style={styles.secondaryTitle}> Hub</Text>
+            </View>
+            <Text style={styles.tagline}>Unified Solana Identity</Text>
+
+            <View style={styles.spacer} />            
             <SeekerButton 
               title="Enter Hub" 
               onPress={() => router.push('/(onboarding)/identity')} 
@@ -83,24 +85,36 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   loginCard: {
-    paddingVertical: 40,
-    paddingHorizontal: 24,
+    paddingVertical: 48,
+    paddingHorizontal: 28,
     alignItems: 'center',
   },
-  title: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: '300',
-    marginBottom: 8,
-    letterSpacing: -1,
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 6,
   },
-  subtitle: {
-    color: Theme.colors.text.medium,
-    fontSize: 14,
+  headline: {
+    color: '#fff',
+    fontSize: 40,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(255,255,255,0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
+  },
+  secondaryTitle: {
+    color: '#fff',
+    fontSize: 40,
     fontWeight: '400',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: 40,
+    letterSpacing: 1,
+  },
+  tagline: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    fontWeight: '500',
+    letterSpacing: 0.8,
+    marginBottom: 44,
   },
   spacer: {
     height: 20,
