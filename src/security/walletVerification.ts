@@ -17,7 +17,7 @@ export const verifyWalletSignature = (
 ): boolean => {
   try {
     const publicKey = new PublicKey(publicKeyStr);
-    const messageBytes = Buffer.from(message, "utf8");
+    const messageBytes = new Uint8Array(Buffer.from(message, "utf8"));
     return nacl.sign.detached.verify(
       messageBytes,
       signature,

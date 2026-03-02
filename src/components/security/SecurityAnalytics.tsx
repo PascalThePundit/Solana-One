@@ -72,7 +72,7 @@ const ScoreRing = ({ score, riskLevel }: { score: number, riskLevel: string }) =
           end={progress}
         />
       </Canvas>
-      <View style={StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }}>
+      <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
         <Text style={[styles.scoreText, { color }]}>{Math.round(score)}</Text>
         <Text style={styles.scoreLabel}>IDENTITY SCORE</Text>
       </View>

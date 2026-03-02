@@ -25,7 +25,8 @@ import Animated, {
   interpolate,
   useDerivedValue,
   withRepeat,
-  Easing
+  Easing,
+  SharedValue
 } from 'react-native-reanimated';
 
 // Liquid Morph Shader (based on SDFs for that "merging/organic" look)
@@ -63,7 +64,7 @@ interface LiquidGlassSurfaceProps {
   height: number;
   borderRadius?: number;
   mode?: 'light' | 'dark';
-  pressed?: Animated.SharedValue<number>;
+  pressed?: SharedValue<number>;
 }
 
 export const LiquidGlassSurface: React.FC<LiquidGlassSurfaceProps> = ({
@@ -124,7 +125,7 @@ export const LiquidGlassSurface: React.FC<LiquidGlassSurfaceProps> = ({
               <Blur blur={25} />
               <ColorMatrix matrix={chromaticMatrix} />
               {/* Refraction Displacement Map */}
-              <DisplacementMap scale={15}>
+              <DisplacementMap scale={15} channelX="r" channelY="g">
                 <Turbulence freqX={0.01} freqY={0.01} octaves={2} seed={1} />
               </DisplacementMap>
             </Group>
@@ -188,14 +189,6 @@ export const LiquidGlassSurface: React.FC<LiquidGlassSurfaceProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  content: {
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-  }
-});
 
 const styles = StyleSheet.create({
   content: {

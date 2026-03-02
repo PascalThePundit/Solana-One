@@ -9,6 +9,7 @@ config.resolver.extraNodeModules = {
   util: require.resolve("util"),
   process: require.resolve("process"),
   buffer: require.resolve("buffer"),
+  fs: require.resolve("path-browserify"), // Use a dummy module or empty mock
 };
 
 module.exports = config;

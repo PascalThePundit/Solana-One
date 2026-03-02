@@ -1,9 +1,10 @@
 import { Transaction, RiskLevel, useAppStore } from '../store/useAppStore';
+import { rpcManager } from '../solana/connection';
 
 /**
  * Transaction Lifecycle Service (Solana-ready)
  * This service manages the state and simulation of Solana transactions.
- * All logic here is prepared for swapping in real @solana/web3.js calls.
+ * Enhanced with RPC Failover and Demo Mode support.
  */
 
 export const transactionService = {
@@ -12,29 +13,31 @@ export const transactionService = {
    * In production, this would use simulateTransaction() RPC method.
    */
   async simulateTransaction(type: 'transfer' | 'approval' | 'sign'): Promise<Transaction> {
-    const { setPendingTransaction, addActivity } = useAppStore.getState();
+    const { setPendingTransaction, addActivity, isDemoMode } = useAppStore.getState();
     
-    return new Promise(async (resolve) => {
-      // 1s RPC simulation delay
-      await new Promise(r => setTimeout(r, 1000));
+    return await rpcManager.executeWithFailover(async (connection) => {
+      // 1s RPC simulation delay (simulating network latency)
+      await new Promise(r => setTimeout(r, 800));
 
       const mockTx: Transaction = {
         id: `tx_${Math.random().toString(36).substr(2, 9)}`,
         type: type.toUpperCase(),
         fee: (Math.random() * 0.0005 + 0.000005).toFixed(6) + ' SOL',
-        riskLevel: Math.random() > 0.85 ? 'high' : (Math.random() > 0.6 ? 'medium' : 'low'),
-        summary: `Requesting ${type.toLowerCase()} authorization for ${Math.random().toString(36).substring(2, 6).toUpperCase()} dApp session.`,
+        riskLevel: isDemoMode ? 'medium' : (Math.random() > 0.85 ? 'high' : (Math.random() > 0.6 ? 'medium' : 'low')),
+        summary: isDemoMode 
+          ? `[DEMO] Simulated ${type.toLowerCase()} authorization for Sandbox dApp.`
+          : `Requesting ${type.toLowerCase()} authorization for ${Math.random().toString(36).substring(2, 6).toUpperCase()} dApp session.`,
         target: '8xK...3pQ'
       };
 
       setPendingTransaction(mockTx);
       
       addActivity({
-        title: `Simulated ${type} via RPC`,
+        title: `Simulated ${type} via ${connection.rpcEndpoint.split('/')[2]}`,
         status: 'info'
       });
       
-      resolve(mockTx);
+      return mockTx;
     });
   },
 
@@ -47,17 +50,31 @@ export const transactionService = {
 
     setProcessing(true);
     
-    // 1.5s transaction confirmation (Solana finality)
-    await new Promise(r => setTimeout(r, 1500));
+    try {
+      await rpcManager.executeWithFailover(async (connection) => {
+        // 1.5s transaction confirmation (Solana finality)
+        await new Promise(r => setTimeout(r, 1200));
+        
+        // In a real app, we would send the transaction here:
+        // await connection.sendRawTransaction(...)
+      });
 
-    addActivity({
-      title: `${pendingTransaction.type} Approved`,
-      status: 'approved'
-    });
+      addActivity({
+        title: `${pendingTransaction.type} Approved`,
+        status: 'approved'
+      });
 
-    setProcessing(false);
-    setPendingTransaction(null);
-    return true;
+      return true;
+    } catch (err) {
+      addActivity({
+        title: `Transaction Failed: ${(err as Error).message}`,
+        status: 'denied'
+      });
+      return false;
+    } finally {
+      setProcessing(false);
+      setPendingTransaction(null);
+    }
   },
 
   /**
@@ -80,7 +97,9 @@ export const transactionService = {
    * Pre-configured demo scenarios for Hackathon judging
    */
   async triggerDemoScenario(level: RiskLevel) {
-    const { setPendingTransaction, setSecurityInsight, addNotification } = useAppStore.getState();
+    const { setPendingTransaction, setSecurityInsight, addNotification, setDemoMode } = useAppStore.getState();
+    
+    setDemoMode(true);
     
     // 500ms prep delay
     await new Promise(r => setTimeout(r, 500));

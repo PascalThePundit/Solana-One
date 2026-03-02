@@ -30,21 +30,9 @@ export const FadeInView: React.FC<FadeInViewProps> = ({
 
   useEffect(() => {
     const standardEasing = Theme?.animation?.easing?.standard;
-    let activeEasing: EasingFunction;
     
-    // Safely determine easing to avoid spread runtime errors on non-iterables
-    if (Array.isArray(standardEasing) && standardEasing.length === 4) {
-      activeEasing = Easing.bezier(
-        standardEasing[0], 
-        standardEasing[1], 
-        standardEasing[2], 
-        standardEasing[3]
-      );
-    } else if (typeof standardEasing === 'function') {
-      activeEasing = standardEasing;
-    } else {
-      activeEasing = Easing.bezier(0.25, 0.1, 0.25, 1);
-    }
+    // In Reanimated 4, we let the type be inferred or use the easing directly
+    const activeEasing = standardEasing || Easing.bezier(0.25, 0.1, 0.25, 1);
 
     opacity.value = withDelay(delay, withTiming(1, { 
       duration: duration,

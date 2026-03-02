@@ -31,8 +31,9 @@ import { sessionManager } from "../src/security/sessionManager";
 import { useIdentityStore } from "../src/store/identityStore";
 import { useAppStore } from "../src/store/useAppStore";
 import CustomSplashScreen from "./SplashScreen";
+import { ErrorBoundary } from "../src/components/ErrorBoundary";
 
-// Skia Web Loading is handled inside the prepare function in RootLayout
+import { initializeSkia } from "../src/services/skia-loader";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreenNative.preventAutoHideAsync().catch(() => {
@@ -53,15 +54,8 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Handle Skia Web Loading
-        if (Platform.OS === "web") {
-          const {
-            LoadSkiaWeb,
-          } = require("@shopify/react-native-skia/lib/module/web");
-          await LoadSkiaWeb({
-            locateFile: (file) => `/${file}`,
-          });
-        }
+        // Handle Skia Initialization (platform-agnostic)
+        await initializeSkia();
 
         const hasSession = await sessionManager.loadSession();
         if (hasSession) {
@@ -157,46 +151,48 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets} autoConnect>
-          <WalletModalProvider>
-            <WalletConnectionHandler />
-            <View style={{ flex: 1 }} onTouchStart={handleInteraction}>
-              <ThemeProvider value={DarkTheme}>
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    animation: "fade",
-                    animationDuration: 400,
-                  }}
-                >
-                  {!isOnboarded ? (
-                    <Stack.Screen name="(onboarding)" />
-                  ) : (
-                    <Stack.Screen name="(tabs)" />
-                  )}
-                  <Stack.Screen
-                    name="modal"
-                    options={{ presentation: "modal", title: "Modal" }}
-                  />
-                  <Stack.Screen
-                    name="approve-transaction"
-                    options={{
-                      presentation: "transparentModal",
-                      animation: "slide_from_bottom",
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ConnectionProvider endpoint={endpoint}>
+          <WalletProvider wallets={wallets} autoConnect>
+            <WalletModalProvider>
+              <WalletConnectionHandler />
+              <View style={{ flex: 1 }} onTouchStart={handleInteraction}>
+                <ThemeProvider value={DarkTheme}>
+                  <Stack
+                    screenOptions={{
                       headerShown: false,
+                      animation: "fade",
+                      animationDuration: 400,
                     }}
-                  />
-                </Stack>
-                <StatusBar style="light" />
-                <BiometricModal />
-                <LockScreen />
-              </ThemeProvider>
-            </View>
-          </WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
-    </GestureHandlerRootView>
+                  >
+                    {!isOnboarded ? (
+                      <Stack.Screen name="(onboarding)" />
+                    ) : (
+                      <Stack.Screen name="(tabs)" />
+                    )}
+                    <Stack.Screen
+                      name="modal"
+                      options={{ presentation: "modal", title: "Modal" }}
+                    />
+                    <Stack.Screen
+                      name="approve-transaction"
+                      options={{
+                        presentation: "transparentModal",
+                        animation: "slide_from_bottom",
+                        headerShown: false,
+                      }}
+                    />
+                  </Stack>
+                  <StatusBar style="light" />
+                  <BiometricModal />
+                  <LockScreen />
+                </ThemeProvider>
+              </View>
+            </WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }

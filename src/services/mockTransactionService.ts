@@ -37,7 +37,6 @@ export const mockTransactionService = {
       setTimeout(() => {
         useAppStore.getState().addActivity({
           title: `${tx.type} to ${tx.target}`,
-          timestamp: "Just now",
           status: "approved",
         });
         resolve(true);
@@ -50,7 +49,6 @@ export const mockTransactionService = {
       setTimeout(() => {
         useAppStore.getState().addActivity({
           title: `Rejected ${tx.type}`,
-          timestamp: "Just now",
           status: "denied",
         });
         resolve(false);

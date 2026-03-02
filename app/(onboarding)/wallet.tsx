@@ -31,7 +31,7 @@ export default function WalletConnectScreen() {
     try {
       setIsVerifying(true);
       const message = generateVerificationMessage(publicKey.toBase58());
-      const messageBytes = Buffer.from(message, "utf8");
+      const messageBytes = new Uint8Array(Buffer.from(message, "utf8"));
       const signature = await signMessage(messageBytes);
 
       const isValid = verifyWalletSignature(

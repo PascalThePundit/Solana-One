@@ -69,6 +69,9 @@ interface AppState {
   // Activity
   activityHistory: AppActivity[];
 
+  // Demo Mode
+  isDemoMode: boolean;
+
   // Actions
   completeOnboarding: () => void;
   setWalletState: (connected: boolean, publicKey: string | null) => void;
@@ -83,6 +86,7 @@ interface AppState {
   markNotificationRead: (id: string) => void;
   clearNotifications: () => void;
   addActivity: (activity: Omit<AppActivity, 'id' | 'timestamp'>) => void;
+  setDemoMode: (enabled: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -102,6 +106,7 @@ export const useAppStore = create<AppState>((set) => ({
   notifications: [],
   notificationsCount: 0,
   activityHistory: [],
+  isDemoMode: false,
 
   completeOnboarding: () => set((state) => ({ ...state, isOnboarded: true })),
   
@@ -165,4 +170,6 @@ export const useAppStore = create<AppState>((set) => ({
       ...state.activityHistory.slice(0, 9) // Keep last 10
     ]
   })),
+
+  setDemoMode: (enabled) => set((state) => ({ ...state, isDemoMode: enabled })),
 }));

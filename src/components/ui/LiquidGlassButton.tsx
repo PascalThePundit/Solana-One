@@ -21,7 +21,7 @@ interface LiquidGlassButtonProps {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export const LiquidGlassButton: React.FC<LiquidGlassButtonProps> = ({
+export const LiquidGlassButton = React.memo<LiquidGlassButtonProps>(({
   title,
   onPress,
   width = 200,
@@ -49,7 +49,9 @@ export const LiquidGlassButton: React.FC<LiquidGlassButtonProps> = ({
       </LiquidGlassSurface>
     </AnimatedPressable>
   );
-};
+});
+
+LiquidGlassButton.displayName = 'LiquidGlassButton';
 
 const styles = StyleSheet.create({
   text: {
