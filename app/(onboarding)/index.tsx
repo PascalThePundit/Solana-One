@@ -25,8 +25,11 @@ export default function OnboardingSplash() {
   const router = useRouter();
 
   useEffect(() => {
-    // Navigate immediately to the intro since the real splash is handled elsewhere
-    router.replace('/(onboarding)/intro');
+    // Navigate to intro with a small delay to ensure layout is mounted
+    const timeout = setTimeout(() => {
+      router.replace('/(onboarding)/intro');
+    }, 100);
+    return () => clearTimeout(timeout);
   }, []);
 
   return (
