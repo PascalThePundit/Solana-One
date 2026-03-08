@@ -55,12 +55,12 @@ export class TransactionRiskAnalyzer {
 
     try {
       // Attempt to decode as VersionedTransaction first
-      transaction = VersionedTransaction.deserialize(binaryTx);
+      transaction = VersionedTransaction.deserialize(new Uint8Array(binaryTx));
       isVersioned = true;
     } catch (e) {
       // Fallback to legacy Transaction
       try {
-        transaction = Transaction.from(binaryTx);
+        transaction = Transaction.from(new Uint8Array(binaryTx));
         isVersioned = false;
       } catch (err) {
         throw new Error('Failed to decode transaction: Invalid format');
@@ -117,12 +117,12 @@ export class TransactionRiskAnalyzer {
     tx.instructions.forEach(ix => {
       // System Program Checks
       if (ix.programId.equals(SystemProgram.programId)) {
-        this.detectSystemRisk(ix.data, report);
+        this.detectSystemRisk(new Uint8Array(ix.data), report);
       }
 
       // Token Program Checks
       if (ix.programId.toBase58() === 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') {
-        this.detectTokenRisk(ix.data, report);
+        this.detectTokenRisk(new Uint8Array(ix.data), report);
       }
     });
 
@@ -165,10 +165,10 @@ export class TransactionRiskAnalyzer {
     instructions.forEach((ix: any) => {
       const programId = accountKeys[ix.programIdIndex];
       if (programId.equals(SystemProgram.programId)) {
-        this.detectSystemRisk(ix.data, report);
+        this.detectSystemRisk(new Uint8Array(ix.data), report);
       }
       if (programId.toBase58() === 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') {
-        this.detectTokenRisk(ix.data, report);
+        this.detectTokenRisk(new Uint8Array(ix.data), report);
       }
     });
   }

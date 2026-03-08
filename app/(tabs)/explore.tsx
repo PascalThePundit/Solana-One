@@ -160,7 +160,7 @@ export default function ExploreScreen() {
         <ThemedText type="title" style={{ fontFamily: Fonts.rounded }}>Settings</ThemedText>
       </ThemedView>
 
-      <Collapsible title="Cloud Sync (Zero-Knowledge)" defaultOpen>
+      <Collapsible title="Cloud Sync (Zero-Knowledge)">
         <ThemedView style={styles.settingItem}>
           <ThemedView>
             <ThemedText type="defaultSemiBold">Enable Cloud Backup</ThemedText>

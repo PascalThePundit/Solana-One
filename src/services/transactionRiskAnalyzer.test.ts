@@ -33,8 +33,8 @@ async function runTests() {
   const serializedLowRisk = lowRiskTx.serialize({ verifySignatures: false }).toString('base64');
   const report1 = await TransactionRiskAnalyzer.analyze(serializedLowRisk, alice.publicKey.toBase58());
   
-  console.log('
-[TEST 1: Simple Transfer]');
+  console.log(`
+[TEST 1: Simple Transfer]`);
   console.log('Risk Level:', report1.riskLevel);
   console.log('Risk Score:', report1.riskScore);
   console.log('Reasons:', report1.reasons);
@@ -57,8 +57,8 @@ async function runTests() {
   const serializedHighRisk = highRiskTx.serialize({ verifySignatures: false }).toString('base64');
   const report2 = await TransactionRiskAnalyzer.analyze(serializedHighRisk, alice.publicKey.toBase58());
 
-  console.log('
-[TEST 2: Token Approval (Drainer Pattern)]');
+  console.log(`
+[TEST 2: Token Approval (Drainer Pattern)]`);
   console.log('Risk Level:', report2.riskLevel);
   console.log('Risk Score:', report2.riskScore);
   console.log('Reasons:', report2.reasons);
@@ -76,8 +76,8 @@ async function runTests() {
   const serializedUnknown = unknownTx.serialize({ verifySignatures: false }).toString('base64');
   const report3 = await TransactionRiskAnalyzer.analyze(serializedUnknown, alice.publicKey.toBase58());
 
-  console.log('
-[TEST 3: Unknown Program]');
+  console.log(`
+[TEST 3: Unknown Program]`);
   console.log('Risk Level:', report3.riskLevel);
   console.log('Risk Score:', report3.riskScore);
   console.log('Reasons:', report3.reasons);

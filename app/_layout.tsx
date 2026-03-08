@@ -13,16 +13,8 @@ import {
     ConnectionProvider,
     WalletProvider,
 } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import {
-    PhantomWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
-
-// Default styles that can be overridden by your app
-if (Platform.OS === "web") {
-  require("@solana/wallet-adapter-react-ui/styles.css");
-}
+import { getWallets, WalletModalProvider } from "../src/solana/wallets";
 
 import { BiometricModal } from "../src/components/BiometricModal";
 import { LockScreen } from "../src/components/LockScreen";
@@ -134,21 +126,9 @@ export default function RootLayout() {
 
   const endpoint = useMemo(() => clusterApiUrl("devnet"), []);
   const wallets = useMemo(
-    () => [new PhantomWalletAdapter()],
+    () => getWallets(),
     [],
   );
-
-  if (!appIsReady) {
-    return null;
-  }
-
-  if (showCustomSplash) {
-    return (
-      <CustomSplashScreen
-        onAnimationComplete={() => setShowCustomSplash(false)}
-      />
-    );
-  }
 
   return (
     <ErrorBoundary>
@@ -156,39 +136,49 @@ export default function RootLayout() {
         <ConnectionProvider endpoint={endpoint}>
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
-              <WalletConnectionHandler />
-              <View style={{ flex: 1 }} onTouchStart={handleInteraction}>
-                <ThemeProvider value={DarkTheme}>
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                      animation: "fade",
-                      animationDuration: 400,
-                    }}
-                  >
-                    {!isOnboarded ? (
-                      <Stack.Screen name="(onboarding)" />
-                    ) : (
-                      <Stack.Screen name="(tabs)" />
-                    )}
-                    <Stack.Screen
-                      name="modal"
-                      options={{ presentation: "modal", title: "Modal" }}
+              {appIsReady && !showCustomSplash ? (
+                <>
+                  <WalletConnectionHandler />
+                  <View style={{ flex: 1 }} onTouchStart={handleInteraction}>
+                    <ThemeProvider value={DarkTheme}>
+                      <Stack
+                        screenOptions={{
+                          headerShown: false,
+                          animation: "fade",
+                          animationDuration: 400,
+                        }}
+                      >
+                        <Stack.Screen name="index" />
+                        <Stack.Screen name="(onboarding)" />
+                        <Stack.Screen name="(tabs)" />
+                        <Stack.Screen
+                          name="modal"
+                          options={{ presentation: "modal", title: "Modal" }}
+                        />
+                        <Stack.Screen
+                          name="approve-transaction"
+                          options={{
+                            presentation: "transparentModal",
+                            animation: "slide_from_bottom",
+                            headerShown: false,
+                          }}
+                        />
+                      </Stack>
+                      <StatusBar style="light" />
+                      <BiometricModal />
+                      <LockScreen />
+                    </ThemeProvider>
+                  </View>
+                </>
+              ) : (
+                <View style={{ flex: 1, backgroundColor: '#000' }}>
+                  {appIsReady && showCustomSplash && (
+                    <CustomSplashScreen
+                      onAnimationComplete={() => setShowCustomSplash(false)}
                     />
-                    <Stack.Screen
-                      name="approve-transaction"
-                      options={{
-                        presentation: "transparentModal",
-                        animation: "slide_from_bottom",
-                        headerShown: false,
-                      }}
-                    />
-                  </Stack>
-                  <StatusBar style="light" />
-                  <BiometricModal />
-                  <LockScreen />
-                </ThemeProvider>
-              </View>
+                  )}
+                </View>
+              )}
             </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>

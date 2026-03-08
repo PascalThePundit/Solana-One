@@ -2,7 +2,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, StyleSheet, Text, View } from "react-native";
 import { FadeInView } from "../../src/animations/FadeInView";
 import { SeekerButton } from "../../src/components/SeekerButton";
 import {
@@ -14,9 +14,9 @@ import { Theme } from "../../src/theme";
 
 export default function WalletConnectScreen() {
   const router = useRouter();
-  const { setVisible } = useWalletModal();
-  const { publicKey, connected, signMessage, disconnect } = useWallet();
-  const { login, logout } = useIdentityStore();
+  const walletModal = useWalletModal();
+  const { publicKey, connected, signMessage, disconnect, connect, select, wallets, wallet } = useWallet();
+  const { login } = useIdentityStore();
   const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
@@ -63,8 +63,40 @@ export default function WalletConnectScreen() {
     }
   };
 
-  const handleConnect = () => {
-    setVisible(true);
+  const handleConnect = async () => {
+    if (connected) return;
+
+    try {
+      if (Platform.OS === "web") {
+        if (walletModal) {
+          walletModal.setVisible(true);
+        } else {
+          Alert.alert("Error", "Wallet modal not available.");
+        }
+      } else {
+        // For Mobile, we prioritize the Mobile Wallet Adapter
+        const mwaWallet = wallets.find(w => w.adapter.name.includes("Mobile Wallet Adapter"));
+        if (mwaWallet) {
+          select(mwaWallet.adapter.name);
+          // Wait for selection to propagate
+          setTimeout(() => connect(), 100);
+        } else {
+          // Fallback to whatever is available or the modal if the user insists
+          try {
+            if (walletModal) {
+              walletModal.setVisible(true);
+            } else {
+              throw new Error("No modal");
+            }
+          } catch (e) {
+            Alert.alert("Error", "Wallet modal not available. Please ensure a wallet is installed.");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Connection error:", error);
+      Alert.alert("Connection Error", "Failed to initiate wallet connection.");
+    }
   };
 
   return (
